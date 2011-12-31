@@ -1,0 +1,25 @@
+    Dynamite MOD
+
+    Author: Nemo08
+
+    VERSION: 0.4
+
+    LICENSE: GPLv3
+    
+    DEPENDS:
+        default
+	nparticle
+	moarcraft
+
+    FEATURES:
+        * pumpkin:pumpkin_seeds -- seeds that grows into pumpkin.
+        * pumpkin:pumpkin_sprout_<state> -- pumpkin sprout, the sprout in final state will make the 1-4 pumpkins.
+                    One pumpkinis 3 seeds. Pumpkins grow only if they on wheat:dirt_bed.
+		* pumpkin:pumpkin_light -- is pumpkin with torch, makes 15 of light.
+
+   VSERSIONS:
+	0.0.4:
+		* unified code
+		* detonation
+		* size-dependense work of dynamite 
+
