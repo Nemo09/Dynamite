@@ -1,0 +1,107 @@
+* {
+margin: 0;
+padding: 0;
+border: 0;
+}
+body {
+padding: 2% 0 0;
+background: #fff;
+color: #333;
+font-family: "Lucida Grande",Verdana,Lucida,Helvetica,Arial,sans-serif;
+font-size:80%;
+}
+#container {
+width: 90%;
+margin: 0 auto;
+background: #ffe;
+}
+#nav {
+background: #c99;
+color: #f00;
+float:top;
+font-size: 120%;
+font-weight: bold;
+line-height: 1.8em;
+text-align: center;
+}
+#menuentry {
+background: #c99;
+font-weight: bold;
+line-height: 1em;
+}
+div[itype="craft"] {
+margin: 3 8px;
+font-weight: bold;
+line-height: 0.5em;
+color: #DE2832;
+}
+div[itype="node"] {
+margin: 3 8px;
+font-weight: bold;
+line-height: 1em;
+color: #1E4FD5;
+}
+div[itype="tool"] {
+margin: 3 8px;
+font-weight: bold;
+line-height: 1em;
+color: #21BB34;
+}
+
+
+
+#nav ul {
+list-style-type: none;
+}
+#nav li {
+display: inline;
+margin: 0 8px;
+}
+#nav li a {
+color: #0c0;
+}
+#nav li a:hover {
+color: #f00;
+}
+#header {
+width: 760px;
+height: 158px;
+}
+a {
+text-decoration: none;
+}
+
+#sidenav {
+background:#9c9;
+float:left;
+width:20%;}
+
+#main {
+background:#99c;
+float:right;
+width:78%;
+}
+
+.sub[vis="true"] {
+display: block;	
+}
+
+.sub[vis="false"]{
+display: none;	
+}
+
+.msub[vis="false"]{
+display: none;	
+}
+.msub[vis="true"]{
+display: block;	
+margin: 5px;
+border: 1px;
+border-style: dotted;
+}
+
+.param {
+display: block;
+background:#fff;
+color: #000;
+}

@@ -1,0 +1,8 @@
+		(document).ready(function(){
+			alert("sss");
+			$("div").click(function(){
+		        $(this).parents(".pane").animate({ opacity: "hide" }, "slow");
+			alert("sss");
+			});
+		});
+			alert("sss");
