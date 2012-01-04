@@ -119,7 +119,8 @@ mod:dynamite v 0.0.5
 					minetest.env:remove_node(dynpos)
 					local rnd = math.random(1,100)
 					if rnd < 35 then 
-						minetest.env:add_node(dynpos, {name="nparticle:fire_cloud1"})
+						--minetest.env:add_node(dynpos, {name="nparticle:fire_cloud1"})
+						minetest.env:add_entity(dynpos,"nparticle:fire1_entity")
 					end				
 				end
 
@@ -377,11 +378,13 @@ mod:dynamite v 0.0.5
 			alpha = 150,
 			light_source = 13 + i*2,
 			post_effect_color = {a=192, r=255, g=64, b=0},
+			material = minetest.digprop_constanttime(0.4),
+			dug_item = 'dynamite:woods',
 		})
 	
 		minetest.register_abm({
 			nodenames 	= {"dynamite:fire".. i},
-			interval 	= 2,
+			interval 	= 1,
 			chanse		= 0.9,
 			action 		= function(pos, node, _, __)							
 					if i ~= 3 then
@@ -390,10 +393,10 @@ mod:dynamite v 0.0.5
 						minetest.env:add_node(pos, {name= ("dynamite:fire1")})
 					end
 					local rnd = math.random(1,100)
-					if rnd < 45 then 
+					--if rnd < 80 then 
 						local dynpos = {x=pos.x,y=pos.y+2,z=pos.z}
-						minetest.env:add_node(dynpos, {name= ("nparticle:smoke_cloud3")})
-					end
+						minetest.env:add_entity(dynpos,"nparticle:smoke_cloud3_entity")
+					--end
 				end
 		})
 	end

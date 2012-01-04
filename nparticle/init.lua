@@ -43,7 +43,7 @@ mod: nparticle v 0.0.1
 --[ ************************************* FIRE ABMs ***************************************]--
 
 
-	FIRE1_INTERVAL 	= 5
+	FIRE1_INTERVAL 	= 2
 	FIRE1_CHANSE	= 0.7
 	FIRE1_MOVE_CUBE = 1    --пределы распространения
 	FIRE_MOVE_CHANSE = 3  --шанс переместиться [1..100]
@@ -61,15 +61,15 @@ mod: nparticle v 0.0.1
 						local dynpos 	= {x = pos.x+x,y = pos.y+y,z = pos.z+z}
 						local targetnode = minetest.env:get_node(dynpos)
 						local rand_move = math.random(1,100)
-						if targetnode.type == "node" then
+
 						if ((targetnode.name == "air")or 
-						   (strfind(targetnode.name,"nparticle:dust_cloud") ~= nil) or
-						   (strfind(targetnode.name,"nparticle:fire_cloud") ~= nil))and
+						   (string.find(targetnode.name,"nparticle:dust_cloud") ~= nil) or
+						   (string.find(targetnode.name,"nparticle:fire_cloud") ~= nil))and
 						   (rand_move <= FIRE_MOVE_CHANSE) 
 						then 
 							minetest.env:add_node(dynpos,{name = "nparticle:fire_cloud2"})
 						end
-						end
+
 
 					end
 					end
@@ -282,4 +282,195 @@ for k=0,4 do
 	})
 end		
 
+--[ ************************************* FIRE2 ***************************************]--
+	FIRE_ENT_MOVE_CUBE = 1    --пределы распространения
+	FIRE_ENT_MOVE_CHANSE = 40  --шанс переместиться [1..100]
+
+	local fire_ent_table = {}
+	local delta = {}
+	for i=1,3 do
+		delta[i] = 0
+		fire_ent_table['fire' .. i ..'_entity'] = {
+			physical = false,
+			timer=0,
+			textures = {"fire_cloud_" .. i .. ".png"},
+			lastpos={},
+			light_source = 15,
+			collisionbox = {0,0,0,0,0,0},
+		}
+		fire_ent_table['fire' .. i ..'_entity'].on_step = function(self, dtime)
+			delta[i] = delta[i] + dtime
+			while delta[i] >= 1.5 do
+				delta[i] = delta[i] - 1
+				local pos = self.object:getpos()
+  		---------------------------------------------------------------
+				for x = -FIRE_ENT_MOVE_CUBE, FIRE_ENT_MOVE_CUBE do
+				for y = -FIRE_ENT_MOVE_CUBE, FIRE_ENT_MOVE_CUBE do
+				for z = -FIRE_ENT_MOVE_CUBE, FIRE_ENT_MOVE_CUBE do
+					local dynpos 	= {x = pos.x+x,y = pos.y+y,z = pos.z+z}
+					local targetnode = minetest.env:get_node(dynpos)
+					local rand_move = math.random(1,100)
+
+					if ((targetnode.name == "air")or 
+					   (string.find(targetnode.name,"nparticle:dust_cloud") ~= nil) or
+					   (string.find(targetnode.name,"nparticle:fire_cloud") ~= nil))
+					   and (rand_move < FIRE_MOVE_CHANSE) 
+					then 
+						--minetest.env:add_node(dynpos,{name = "nparticle:fire_cloud2"})
+						--minetest.env:remove_node(pos)
+						if i<2 then
+							minetest.env:add_entity(dynpos,'nparticle:fire' .. (i+1) ..'_entity')
+							self.object:remove()
+						else
+							self.object:remove()
+						end
+					
+					end
+				end
+				end
+				end
+---------------------------------------------------------------------------------
+			end	
+		end
+
+		minetest.register_entity("nparticle:fire" .. i .. "_entity", fire_ent_table['fire' .. i ..'_entity'])
+	end
+
+--[ ************************************* SMOKE2 ************************************]--
+
+	SMOKE_ENT_MOVE_CUBE = 1    --пределы распространения
+	SMOKE_ENT_BREAK_CHANSE = 20  -- [1..100]  шанс частицы "разлететься"
+	SMOKE_ENT_MOVE_NODE_CHANSE = 30  -- [1..100]  шанс разлетевшейся частицы попасть в конкретную ячейку
+
+	local smoke_ent_table = {}
+	local delta = {}
+	for i=0,4 do
+		delta[i] = 0
+		smoke_ent_table['smoke_cloud' .. i ..'_entity'] = {
+			physical = false,
+			timer=0,
+			textures = {"smoke" .. i .. ".png"},
+			lastpos={},
+			collisionbox = {0,0,0,0,0,0},
+		}
+		smoke_ent_table['smoke_cloud' .. i ..'_entity'].on_step = function(self, dtime)
+			delta[i] = delta[i] + dtime
+			while delta[i] >= 1.5 do
+				delta[i] = delta[i] - 1
+				local pos = self.object:getpos()
+  		---------------------------------------------------------------
+					local this_node = minetest.env:get_node(pos)
+					local kp = i
+					local rand_break = math.random(1,100)
+					
+					if rand_break <= SMOKE_ENT_BREAK_CHANSE then
+						for x = -SMOKE_ENT_MOVE_CUBE,SMOKE_ENT_MOVE_CUBE do
+						for y = 0,SMOKE_ENT_MOVE_CUBE do
+						for z = -SMOKE_ENT_MOVE_CUBE,SMOKE_ENT_MOVE_CUBE do
+							local rand_move = math.random(1,100-y*15)
+							if rand_move <= SMOKE_ENT_MOVE_NODE_CHANSE then
+								local dynpos 	= {x = pos.x+x,y = pos.y+y,z = pos.z+z}
+								local targetnode = minetest.env:get_node(dynpos)
+																									
+								if (targetnode.name == "air")and  ((kp-1) >1) then
+										minetest.env:add_entity(dynpos,'nparticle:smoke_cloud' .. (i-1) ..'_entity')
+								end
+								self.object:remove()
+							end							
+						end
+						end
+						end
+					else
+						local dynpos 	= {x = pos.x,y = pos.y+1,z = pos.z}
+						local targetnode = minetest.env:get_node(dynpos)
+						if (targetnode.name ~= "air") then
+							dynpos 	= {x = (pos.x+math.random(-1,1)),y = pos.y,z = (pos.z+math.random(-1,1))}
+							local targetnode = minetest.env:get_node(dynpos)
+							if (targetnode.name ~= "air") then
+								local dynpos = pos	
+							end
+						end
+	
+						if (kp>0) then
+							local rand_break = math.random(1,100)
+							if rand_break < 15 then
+								--minetest.env:add_node(dynpos, {name="nparticle:smoke_cloud" .. tostring(k-1)})
+								minetest.env:add_entity(dynpos,'nparticle:smoke_cloud' .. (i-1) ..'_entity')	
+							else
+								minetest.env:add_entity(dynpos,'nparticle:smoke_cloud' .. i ..'_entity')
+							end
+						end
+						self.object:remove()
+					end
+-----------------------------------------------------------------------------------
+			end	
+		end
+
+		minetest.register_entity("nparticle:smoke_cloud" .. i .. "_entity", smoke_ent_table['smoke_cloud' .. i ..'_entity'])
+	end
+--[[
+SMOKE_INTERVAL 	= 1
+	SMOKE_CHANSE	= 0.7
+	SMOKE_MOVE_CUBE = 1    --пределы распространения
+	SMOKE_BREAK_CHANSE = 15  -- [1..100]  шанс частицы "разлететься"
+	SMOKE_MOVE_NODE_CHANSE = 30  -- [1..100]  шанс разлетевшейся частицы попасть в конкретную ячейку
+	SMOKE_COLLAPSE = 70    -- предел плотности, после которого частица пыли исчезает
+	
+		
+for k=0,4 do
+
+	minetest.register_abm({
+		nodenames 	= {"nparticle:smoke_cloud" .. tostring(k)},
+		interval 	= SMOKE_INTERVAL ,
+		chanse		= SMOKE_CHANSE  ,
+		action 		= function(pos, node, _, __)
+		
+					local this_node = minetest.env:get_node(pos)
+					local kp = k
+					local rand_break = math.random(1,100)
+					
+					if rand_break <= SMOKE_BREAK_CHANSE then
+						for x = -SMOKE_MOVE_CUBE,SMOKE_MOVE_CUBE do
+						for y = 0,SMOKE_MOVE_CUBE do
+						for z = -SMOKE_MOVE_CUBE,SMOKE_MOVE_CUBE do
+							local rand_move = math.random(1,100-y*15)
+							if rand_move <= SMOKE_MOVE_NODE_CHANSE then
+								local dynpos 	= {x = pos.x+x,y = pos.y+y,z = pos.z+z}
+								local targetnode = minetest.env:get_node(dynpos)
+																									
+								if (targetnode.name == "air")and  ((kp-1) >1) then
+										minetest.env:add_node(dynpos, {name="nparticle:smoke_cloud" .. tostring(k-1)})
+								end
+								minetest.env:remove_node(pos)
+							end							
+						end
+						end
+						end
+					else
+						local dynpos 	= {x = pos.x,y = pos.y+1,z = pos.z}
+						local targetnode = minetest.env:get_node(dynpos)
+						if (targetnode.name ~= "air") then
+							dynpos 	= {x = (pos.x+math.random(-1,1)),y = pos.y,z = (pos.z+math.random(-1,1))}
+							local targetnode = minetest.env:get_node(dynpos)
+							if (targetnode.name ~= "air") then
+								local dynpos 	= pos	
+							end
+						end
+	
+						if (kp>0) then
+							local rand_break = math.random(1,100)
+							if rand_break < 15 then
+								minetest.env:add_node(dynpos, {name="nparticle:smoke_cloud" .. tostring(k-1)})
+							else
+								minetest.env:add_node(dynpos, {name="nparticle:smoke_cloud" .. tostring(k)})
+							end
+						end
+						minetest.env:remove_node(pos)
+					end
+					
+				  end
+	})
+end		
+
+]]--
 print("[nParticles] Loaded!")	
