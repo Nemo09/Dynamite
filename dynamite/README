@@ -2,7 +2,7 @@
 
     Author: Nemo08 
 
-    VERSION: 0.4
+    VERSION: 0.5
 
     LICENSE: GPLv3
     
@@ -14,9 +14,12 @@
     FEATURES:
 
 
-   VSERSIONS:
+   VERSIONS:
+	0.0.5:
+		* Dynamite divided by type - with timer and a fuse for surge
+		* Changed the recipe for creating dynamites
 	0.0.4:
 		* unified code
 		* detonation
-		* size-dependense work of dynamite 
+		* size-dependense work of dynamite
 
