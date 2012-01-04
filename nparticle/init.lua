@@ -214,7 +214,7 @@ end
 		
 for k=0,4 do
 	minetest.register_node("nparticle:smoke_cloud" .. tostring(k), {
-		drawtype = "glasslike",
+		drawtype = "plantlike",
         	tile_images = {"smoke" .. tostring(k) .. ".png"},
 		paramtype="light",
 		walkable = false,

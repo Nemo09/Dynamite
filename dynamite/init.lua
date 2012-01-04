@@ -264,9 +264,9 @@ print(findeq("moreores:mineral_copper",".:mineral_."))
 	})
 
 	for i = 1,3 do
-		minetest.register_node("dynamite:fire" .. tostring(i), {
+		minetest.register_node("dynamite:fire" .. i, {
 			drawtype = "plantlike",
-			tile_images = {"fire" .. tostring(i) .. ".png"},
+			tile_images = {"fire" .. i .. ".png"},
 			paramtype = "light",
 			is_ground_content = true,
 			walkable = false,
@@ -274,17 +274,17 @@ print(findeq("moreores:mineral_copper",".:mineral_."))
 			light_source = dyn_lightness,
 			damage_per_second = 1*2,
 			alpha = 150,
-			light_source = 15,
+			light_source = 13 + i*2,
 			post_effect_color = {a=192, r=255, g=64, b=0},
 		})
 	
 		minetest.register_abm({
-			nodenames 	= {"dynamite:fire".. tostring(i)},
-			interval 	= 1,
+			nodenames 	= {"dynamite:fire".. i},
+			interval 	= 0.5,
 			chanse		= 1,
 			action 		= function(pos, node, _, __)							
 					if i ~= 3 then
-						minetest.env:add_node(pos, {name= ("dynamite:fire".. tostring(i+1))})
+						minetest.env:add_node(pos, {name= ("dynamite:fire".. (i+1))})
 					else
 						minetest.env:add_node(pos, {name= ("dynamite:fire1")})
 					end
