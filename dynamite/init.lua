@@ -84,6 +84,7 @@ mod:dynamite v 0.0.5
 							explode_this = false    -- we not explose
 						else
 							minetest.env:add_node(dynpos, {name= (i_state)})
+							nodeupdate_single(dynpos)
 							explode_this = false    -- we not explose
 							break
 						end
