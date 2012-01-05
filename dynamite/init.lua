@@ -97,7 +97,7 @@ mod:dynamite v 0.0.5
 				end
 			end
 				
-			if target_node.name == "default:tree" then
+			if (target_node.name == "default:tree")or (target_node.name == "default:jungletree") then
 				local rnd_base = 0.04 + half_size * 0.01
 				for i = 1, 4 do
 					wood_pos = {	x=(dynpos.x + (rnd_base/2)-(math.random(1,100)*rnd_base)), 
@@ -121,6 +121,7 @@ mod:dynamite v 0.0.5
 					if rnd < 35 then 
 						--minetest.env:add_node(dynpos, {name="nparticle:fire_cloud1"})
 						minetest.env:add_entity(dynpos,"nparticle:fire1_entity")
+						minetest.env:add_node(dynpos,{name='nparticle:lpoint'})
 					end				
 				end
 
