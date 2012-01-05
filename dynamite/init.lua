@@ -115,10 +115,10 @@ mod:dynamite v 0.0.5
 				explode_this = true
 			end
 
-			if (explode_this)or(target_node.name == "air") then
+			if (explode_this) then
 					minetest.env:remove_node(dynpos)
-					local rnd = math.random(1,100)
-					if rnd < 35 then 
+
+					if math.random(1,100) < 35 then 
 						--minetest.env:add_node(dynpos, {name="nparticle:fire_cloud1"})
 						minetest.env:add_entity(dynpos,"nparticle:fire1_entity")
 						minetest.env:add_node(dynpos,{name='nparticle:lpoint'})
