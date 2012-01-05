@@ -254,16 +254,24 @@ mod:dynamite v 0.0.5
 				local objs = minetest.env:get_objects_inside_radius({x=pos.x,y=pos.y,z=pos.z}, explode_cube_half_size)
 				for k, obj in pairs(objs) do
 					-- damage from a distance--
-					local objpos = obj:getpos()
-					local dist = math.sqrt((pos.x-objpos.x)^2 + (pos.y-objpos.y)^2 + (pos.z-objpos.z)^2)
-					-- /damage from a distance--
-					obj:set_hp(obj:get_hp()- dyn_self_damage * (explode_cube_half_size / dist))
-					if obj:get_entity_name() ~= "dynamite:" .. dyn_node_name .. "_entity" then
-						if obj:get_hp()<=0 then 
-							obj:remove()
+					local objname = obj:get_entity_name()
+					local find_particle = nil
+					if objname ~= nil then
+						find_particle = string.find(objname,"nparticle:")
+					end
+
+					if (find_particle == nil) then
+						local objpos = obj:getpos()
+						local dist = math.sqrt((pos.x-objpos.x)^2 + (pos.y-objpos.y)^2 + (pos.z-objpos.z)^2)	
+						-- /damage from a distance--
+						obj:set_hp(obj:get_hp()- dyn_self_damage * (explode_cube_half_size / dist))
+						if obj:get_entity_name() ~= "dynamite:" .. dyn_node_name .. "_entity" then
+							if obj:get_hp()<=0 then 
+								obj:remove()
+							end
+							self.object:remove()
+							explode_area(pos, explode_cube_half_size,change_node_list,callback_node_list) 
 						end
-						self.object:remove()
-						explode_area(pos, explode_cube_half_size,change_node_list,callback_node_list) 
 					end
 				end
 			end
@@ -358,7 +366,12 @@ mod:dynamite v 0.0.5
 		liquids_pointable = false,
 		on_place_on_ground = function (item, placer, pos)
 		minetest.env:add_node(pos, {name="dynamite:fire1"})
+		local meta = minetest.env:get_meta(pos)
+		meta:set_string("state","1")
+		meta:set_infotext("")
+
 		target_node = minetest.env:get_node({x=pos.x,y=pos.y-1,z=pos.z})
+
 		if (target_node.name == "default:dirt_with_grass") then
 			minetest.env:add_node({x=pos.x,y=pos.y-1,z=pos.z}, {name="default:dirt"})
 		end
@@ -373,34 +386,50 @@ mod:dynamite v 0.0.5
 			paramtype = "light",
 			is_ground_content = true,
 			walkable = false,
-			sunlight_propagates = true,
+			sunlight_propagates = false,
 			light_source = dyn_lightness,
 			damage_per_second = 1*2,
 			alpha = 150,
 			light_source = 13 + i*2,
 			post_effect_color = {a=192, r=255, g=64, b=0},
 			material = minetest.digprop_constanttime(0.4),
-			dug_item = 'dynamite:woods',
+			dug_item = 'craft "dynamite:woods" 1',
+			metadata_name = "generic",
 		})
 	
-		minetest.register_abm({
-			nodenames 	= {"dynamite:fire".. i},
-			interval 	= 1,
-			chanse		= 0.9,
-			action 		= function(pos, node, _, __)							
-					if i ~= 3 then
-						minetest.env:add_node(pos, {name= ("dynamite:fire".. (i+1))})
-					else
-						minetest.env:add_node(pos, {name= ("dynamite:fire1")})
-					end
-					local rnd = math.random(1,100)
-					--if rnd < 80 then 
-						local dynpos = {x=pos.x,y=pos.y+2,z=pos.z}
-						minetest.env:add_entity(dynpos,"nparticle:smoke_cloud3_entity")
-					--end
-				end
-		})
+		
 	end
+	minetest.register_abm({
+			nodenames 	= {"dynamite:fire1","dynamite:fire2","dynamite:fire3"},
+			interval 	= 0.2,
+			chanse		= 1,
+			action 		= function(pos, node, _, __)
+
+						local meta = minetest.env:get_meta(pos)						
+						local oldstate = meta:get_string("state")
+						local newstate = 1
+
+						if oldstate == "" then
+							newstate = 1
+							meta:set_string("state", "1")
+						else
+							newstate = tonumber(oldstate) + 1					
+							if newstate >= 4 then newstate = 1 end
+							meta:set_string("state", newstate)
+						end
+						
+						minetest.env:add_node(pos, {name= ("dynamite:fire".. newstate)})
+						local meta = minetest.env:get_meta(pos)	
+						meta:set_string("state", newstate)
+						meta:set_infotext("")
+
+						local rnd = math.random(1,100)
+						--if rnd < 80 then 
+							local dynpos = {x=pos.x,y=pos.y+2,z=pos.z}
+							minetest.env:add_entity(dynpos,"nparticle:smoke_cloud3_entity")
+						--end
+					end
+		})
 
 print("[Dynamite] Loaded!")
 
