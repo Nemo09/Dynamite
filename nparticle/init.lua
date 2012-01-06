@@ -5,6 +5,27 @@ Author: Nemo08
 mod: nparticle v 0.0.1
 
 ]]--
+
+---------------------------
+
+-- Profiler stuff
+dofile(minetest.get_modpath('nparticle') .. '/profiler.lua')
+local profiler = newProfiler()
+profiler:start()
+local function stopProfiler()
+    profiler:stop()
+    local outfile = io.open("profile.txt", "w+")
+    profiler:report(outfile)
+    outfile:close()
+end
+minetest.register_on_chat_message(function(name, message)
+    if message == "/stop" then
+        stopProfiler()
+        minetest.chat_send_player(name, "Profiler stopped!")
+    end
+end)
+----------------
+
 	math.randomseed(os.time())
 
 	add_entity_chk = function (pos, name)
@@ -115,7 +136,7 @@ mod: nparticle v 0.0.1
 --[ ************************************* SMOKE2 ************************************]--
 
 	SMOKE_ENT_MOVE_CUBE = 1    --пределы распространения
-	SMOKE_ENT_BREAK_CHANSE = 80  -- [1..100]  шанс частицы "разлететься"
+	SMOKE_ENT_BREAK_CHANSE = 15  -- [1..100]  шанс частицы "разлететься"
 	SMOKE_ENT_MOVE_NODE_CHANSE = 60  -- [1..100]  шанс разлетевшейся частицы попасть в конкретную ячейку
 
 	local smoke_ent_table = {}
@@ -128,16 +149,16 @@ mod: nparticle v 0.0.1
 			collisionbox = {0,0,0,0,0,0},
 			timer = 0,
 			full_timer = 0,
+			my_num =i,
 		}
 		smoke_ent_table['smoke_cloud' .. i ..'_entity'].on_step = function(self, dtime)
 			self.timer = self.timer + dtime
 			self.full_timer = self.full_timer + dtime
 
-			while self.timer >= 2.5 do
+			if self.timer >= 1.5 then
 				self.timer = 0
 				local pos = self.object:getpos()
 				local this_node = minetest.env:get_node(pos)
-				local kp = i
 				local rand_break = math.random(1,100)
 					
 					if rand_break <= SMOKE_ENT_BREAK_CHANSE then
@@ -149,8 +170,10 @@ mod: nparticle v 0.0.1
 								local dynpos 	= {x = pos.x+x,y = pos.y+y,z = pos.z+z}
 								local targetnode = minetest.env:get_node(dynpos)
 								local rand = math.random(1,100)							
-								if (targetnode.name == "air")and  ((kp-1) >1)and(rand<20) then
-										add_entity_chk(dynpos,'nparticle:smoke_cloud' .. (i-1) ..'_entity')
+								if (targetnode.name == "air")and (rand<20)and(self.my_num>2) then
+										minetest.env:add_entity(dynpos,'nparticle:smoke_cloud' .. (i-1) ..'_entity')
+								else
+									self.object:remove()
 								end
 								local rand = math.random(1,100)
 								if rand<15 then
@@ -160,7 +183,11 @@ mod: nparticle v 0.0.1
 						end
 						end
 						end
-					else
+
+					end
+			
+			
+						local rand = math.random(1,100)  
 						local dynpos 	= {x = pos.x,y = pos.y+1,z = pos.z}
 						local targetnode = minetest.env:get_node(dynpos)
 						if (targetnode.name ~= "air") then
@@ -169,24 +196,21 @@ mod: nparticle v 0.0.1
 							if (targetnode.name ~= "air") then
 								local dynpos = pos	
 							end
-						end
-	
-						if (kp>0) then
-							local rand_break = math.random(1,100)
-							if rand_break < 15 then
-								--minetest.env:add_node(dynpos, {name="nparticle:smoke_cloud" .. tostring(k-1)})
-								add_entity_chk(dynpos,'nparticle:smoke_cloud' .. (i-1) ..'_entity')	
+						else
+							if self.my_num>2 then
+								local rand = math.random(1,100)  
+								if rand<20 then
+									minetest.env:add_entity(dynpos,'nparticle:smoke_cloud' .. (self.my_num-1) ..'_entity')
+								else
+									minetest.env:add_entity(dynpos,'nparticle:smoke_cloud' .. (self.my_num) ..'_entity')
+								end
+								self.object:remove()							
 							else
-								add_entity_chk(dynpos,'nparticle:smoke_cloud' .. i ..'_entity')
+								self.object:remove()							
 							end
-						end
-						local rand = math.random(1,100)
-						if rand<15 then
-							self.object:remove()
-						end
-					end
+						end	
 			end	
-			if self.full_timer>15 then
+			if self.full_timer>135 then
 				self.object:remove()
 			end
 		end
@@ -194,6 +218,30 @@ mod: nparticle v 0.0.1
 		minetest.register_entity("nparticle:smoke_cloud" .. i .. "_entity", smoke_ent_table['smoke_cloud' .. i ..'_entity'])
 	end
 
+	
+	      tent = {
+			physical = false,
+			textures = {"test1.png"},
+			lastpos={},
+			collisionbox = {0,0,0,0,0,0},
+			timer = 0,
+			full_timer = 0,
+		}
+		
+		tent.on_step = function(self, dtime)
+			self.timer = self.timer + dtime
+			self.full_timer = self.full_timer + dtime
+
+			if self.timer >= 2 then
+				self.timer = 0
+				
+				local pos = self.object:getpos()
+				minetest.env:add_entity({x=pos.x,y=pos.y+2,z=pos.z},"nparticle:smoke_cloud4_entity")
+			end
+		end
+		
+		minetest.register_entity("nparticle:tent",tent)
+	
 --[ ************************************* DUST2 ************************************]--
 	DUST_ENT_MOVE_CUBE = 2    --пределы распространения
 	DUST_ENT_BREAK_CHANSE = 10 -- [1..100]  шанс частицы "разлететься"
