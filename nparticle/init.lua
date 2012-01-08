@@ -90,7 +90,7 @@ end)
 			timer = 0,										
 			full_timer = 0,									-- counter of full fire life cycle
 			my_num = i,										-- state of fire
-			burn_time = nil,									-- furn time
+			burn_time = 50,									-- furn time
 			node_burn = false,								-- flag, fire on burnable node
 		}
 
@@ -99,13 +99,13 @@ end)
 			local target_node = nil
 			local water_close = false        -- water near flag
 			local targetnode = minetest.env:get_node(pos)
-
+			
 			if (minetest.registered_nodes[minetest.env:get_node(pos).name].furnace_burntime ~= nil ) then
 				self.node_burn = true
-				self.burn_time = minetest.registered_nodes[minetest.env:get_node(pos).name].furnace_burntime * 1.5
+				self.burn_time = minetest.registered_nodes[minetest.env:get_node(pos).name].furnace_burntime * 1.2
 			end
 			
-			-- fire in not burnable node??? noway!!
+		-- fire in not burnable node??? noway!!
 			if (minetest.env:get_node(pos).name ~="air")and(self.node_burn ~= true) then
 				self.object:remove()
 				nodeupdate(pos)
@@ -127,11 +127,11 @@ end)
 			-- check the proximity to water
 			if not (water_close) then
 				-- if node at this pos burnable
-				self.burn_time = math.random(3,7)
+				--self.burn_time = math.random(3,7)
 				minetest.env:remove_node(pos)
 				minetest.env:add_node(pos,{name='nparticle:lpoint'})
 			else
-				minetest.env:remove_node(pos)
+				--minetest.env:remove_node(pos)
 				self.object:remove()
 				nodeupdate(pos)
 			end
@@ -141,10 +141,11 @@ end)
 		fire_ent_table['fire' .. i ..'_entity'].on_step = function(self, dtime)
 			self.timer = self.timer + dtime
 			self.full_timer = self.full_timer + dtime
-
-			if (self.timer >= self.burn_time) then
+			local pos = self.object:getpos()
+			
+			if (self.timer >= 2) then
 				self.timer = 0
-				local pos = self.object:getpos()
+
 				if (self.node_burn == false) then
 					-- target not burnable node
 					for x = -FIRE_ENT_MOVE_CUBE, FIRE_ENT_MOVE_CUBE do
@@ -153,13 +154,18 @@ end)
 						local dynpos 	= {x = pos.x+x,y = pos.y+y,z = pos.z+z}
 						local targetnode = minetest.env:get_node(dynpos)
 
+						if (target_node.name == "default:water_flowing")or(target_node.name == "default:water_source") then
+							minetest.env:remove_node(self.object:getpos())
+							self.object:remove()
+							nodeupdate(self.object:getpos())
+						end
+						
 						if ((targetnode.name == "air") and (math.random(1,100) < FIRE_ENT_MOVE_CHANSE))	then 
 							if self.my_num>2 then
 								--minetest.env:add_entity(dynpos,'nparticle:fire' .. (self.my_num+1) ..'_entity')
 								add_nfire_single(dynpos,self.my_num-1)
 								
 							end
-
 							self.object:remove()
 							minetest.env:remove_node(pos)	
 							nodeupdate(pos)
@@ -188,11 +194,19 @@ end)
 						add_nsmoke_single(dynpos,2)
 					end
 					
+					
+					
 					for x = -1, 1 do
 					for y = -1, 1 do
 					for z = -1, 1 do
 						local dynpos 	= {x = pos.x+x,y = pos.y+y,z = pos.z+z}
 						local targetnode = minetest.env:get_node(dynpos)
+						if (targetnode.name == "default:water_flowing")or(targetnode.name == "default:water_source") then
+							minetest.env:remove_node(self.object:getpos())
+							self.object:remove()
+							nodeupdate(self.object:getpos())
+							return
+						end
 						if (minetest.registered_nodes[targetnode.name].furnace_burntime ~=nil ) then
 							if (minetest.registered_nodes[targetnode.name].furnace_burntime ~= -1) then
 								if (math.random(1,100) < 80) then
@@ -207,7 +221,7 @@ end)
 				end
 				
 				-- selfremove after full life cycle
-				if self.full_timer >=(self.burn_time*1.5) then
+				if self.full_timer >=(self.burn_time) then
 					minetest.env:remove_node(self.object:getpos())
 					self.object:remove()
 					nodeupdate(self.object:getpos())
