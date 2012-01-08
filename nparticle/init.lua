@@ -90,7 +90,7 @@ end)
 			timer = 0,										
 			full_timer = 0,									-- counter of full fire life cycle
 			my_num = i,										-- state of fire
-			burn_time = 2,									-- furn time
+			burn_time = nil,									-- furn time
 			node_burn = false,								-- flag, fire on burnable node
 		}
 
@@ -102,7 +102,7 @@ end)
 
 			if (minetest.registered_nodes[minetest.env:get_node(pos).name].furnace_burntime ~= nil ) then
 				self.node_burn = true
-				self.burn_time = minetest.registered_nodes[minetest.env:get_node(pos).name].furnace_burntime * 1.2
+				self.burn_time = minetest.registered_nodes[minetest.env:get_node(pos).name].furnace_burntime * 1.5
 			end
 			
 			-- fire in not burnable node??? noway!!
