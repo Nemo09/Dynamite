@@ -102,11 +102,13 @@ end)
 
 			if (minetest.registered_nodes[minetest.env:get_node(pos).name].furnace_burntime ~= nil ) then
 				self.node_burn = true
+				self.burn_time = minetest.registered_nodes[minetest.env:get_node(pos).name].furnace_burntime * 1.2
 			end
 			
 			-- fire in not burnable node??? noway!!
 			if (minetest.env:get_node(pos).name ~="air")and(self.node_burn ~= true) then
 				self.object:remove()
+				nodeupdate(pos)
 				return false
 			end
 			
@@ -131,6 +133,7 @@ end)
 			else
 				minetest.env:remove_node(pos)
 				self.object:remove()
+				nodeupdate(pos)
 			end
 		end
 			
@@ -153,7 +156,7 @@ end)
 						if ((targetnode.name == "air") and (math.random(1,100) < FIRE_ENT_MOVE_CHANSE))	then 
 							if self.my_num>2 then
 								--minetest.env:add_entity(dynpos,'nparticle:fire' .. (self.my_num+1) ..'_entity')
-								add_fire_single(dynpos,self.my_num-1)
+								add_nfire_single(dynpos,self.my_num-1)
 								
 							end
 
@@ -163,13 +166,13 @@ end)
 
 							if (math.random(1,100) < 15) then
 								--minetest.env:add_entity(dynpos,'nparticle:dust_cloud3_entity')
-								add_dust_single(dynpos,3)
+								add_ndust_single(dynpos,3)
 							end
 						end
 					
 						if (minetest.registered_nodes[targetnode.name].furnace_burntime ~=nil ) then
 							--minetest.env:add_entity(dynpos,'nparticle:fire1_entity')
-							add_fire_single(dynpos,3)
+							add_nfire_single(dynpos,3)
 						end
 					end
 					end
@@ -182,7 +185,7 @@ end)
 					
 					if (targetnode.name == "air") then
 						--minetest.env:add_entity(dynpos,'nparticle:smoke_cloud' .. 3.. '_entity')
-						add_smoke_single(dynpos,2)
+						add_nsmoke_single(dynpos,2)
 					end
 					
 					for x = -1, 1 do
@@ -194,7 +197,7 @@ end)
 							if (minetest.registered_nodes[targetnode.name].furnace_burntime ~= -1) then
 								if (math.random(1,100) < 80) then
 									--minetest.env:add_entity(dynpos,'nparticle:fire1_entity')
-									add_fire_single(dynpos,3)
+									add_nfire_single(dynpos,3)
 								end
 							end
 						end
@@ -253,7 +256,7 @@ end)
 								local rand = math.random(1,100)							
 								if (targetnode.name == "air")and (rand<20)and(self.my_num>2) then
 										--minetest.env:add_entity(dynpos,'nparticle:smoke_cloud' .. (i-1) ..'_entity')
-										add_smoke_single(dynpos,self.my_num-1)
+										add_nsmoke_single(dynpos,self.my_num-1)
 								else
 									self.object:remove()
 								end
@@ -282,7 +285,7 @@ end)
 								local rand = math.random(1,100)  
 								if rand<20 then
 									--minetest.env:add_entity(dynpos,'nparticle:smoke_cloud' .. (self.my_num-1) ..'_entity')
-									add_smoke_single(dynpos,self.my_num-1)
+									add_nsmoke_single(dynpos,self.my_num-1)
 									self.object:remove()
 								end
 							else
@@ -344,7 +347,7 @@ end)
 	
 							if (targetnode.name == "air") and (self.my_num > 1) then
 								--minetest.env:add_entity(dynpos,'nparticle:dust_cloud' .. (self.my_num-1) ..'_entity')
-								add_dust_single(dynpos,self.my_num-1)
+								add_ndust_single(dynpos,self.my_num-1)
 							end
 						end
 					end
@@ -371,12 +374,12 @@ end
 	-- pos - {x,y,z}							--required
 	-- power - [ 1 .. 3 ]						--required  -- 3 - strongest
 
-	function add_fire_single(pos,power)
+	function add_nfire_single(pos,power)
 		--minetest.env:add_entity(pos,'nparticle:fire'.. power.. '_entity')
 		add_entity_chk(pos,'nparticle:fire'.. power.. '_entity')
 	end
 
-	function add_fire_cube(pos,power,halfsize,fire_rnd)
+	function add_nfire_cube(pos,power,halfsize,fire_rnd)
 		if halfsize>5 then halfsize = 5 end
 		for x=-halfsize,halfsize do
 			for y=-halfsize,halfsize do
@@ -389,14 +392,14 @@ end
 		end
 	end
 
-	function add_fire_sphere(pos,power,radius,fire_rnd)
+	function add_nfire_sphere(pos,power,radius,fire_rnd)
 		if radius>5 then radius = 5 end
 		for x=-radius,radius do
 			for y=-radius,radius do
 				for z=-radius,radius do
 					if (math.random(1,100)<fire_rnd) then
 						if (math.sqrt((pos.x-(pos.x+x))^2 + (pos.y-(pos.y+y))^2 + (pos.z-(pos.z+z))^2) <= radius) then
-							add_fire_single({x=pos.x+x,y=pos.y+y,z=pos.z+z},power)
+							add_nfire_single({x=pos.x+x,y=pos.y+y,z=pos.z+z},power)
 						end
 					end
 				end
@@ -406,17 +409,74 @@ end
 	
 	-- pos - {x,y,z}							--required
 	-- power - [ 1 .. 4 ]						--required  -- 4 - strongest
-	function add_dust_single(pos,power)
+	function add_ndust_single(pos,power)
 		--minetest.env:add_entity(pos,'nparticle:dust_cloud' .. power .. '_entity')
 		add_entity_chk(pos,'nparticle:dust_cloud' .. power .. '_entity')
 	end	
 	-- pos - {x,y,z}							--required
 	-- power - [ 1 .. 4 ]						--required  -- 4 - strongest
 	
-	function add_smoke_single(pos,power)
+	function add_ndust_cube(pos,power,halfsize,fire_rnd)
+		if halfsize>5 then halfsize = 5 end
+		for x=-halfsize,halfsize do
+			for y=-halfsize,halfsize do
+				for z=-halfsize,halfsize do
+					if (math.random(1,100)<fire_rnd) then
+						minetest.env:add_entity({x=pos.x+x,y=pos.y+y,z=pos.z+z},'nparticle:dust_cloud'.. power.. '_entity')
+					end
+				end
+			end
+		end
+	end
+
+	function add_ndust_sphere(pos,power,radius,fire_rnd)
+		if radius>5 then radius = 5 end
+		for x=-radius,radius do
+			for y=-radius,radius do
+				for z=-radius,radius do
+					if (math.random(1,100)<fire_rnd) then
+						if (math.sqrt((pos.x-(pos.x+x))^2 + (pos.y-(pos.y+y))^2 + (pos.z-(pos.z+z))^2) <= radius) then
+							add_ndust_single({x=pos.x+x,y=pos.y+y,z=pos.z+z},power)
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	
+	function add_nsmoke_single(pos,power)
 		--minetest.env:add_entity(pos,'nparticle:smoke_cloud' .. power ..'_entity')
 		add_entity_chk(pos,'nparticle:smoke_cloud' .. power ..'_entity')
 	end	
 
+	function add_nsmoke_cube(pos,power,halfsize,fire_rnd)
+		if halfsize>5 then halfsize = 5 end
+		for x=-halfsize,halfsize do
+			for y=-halfsize,halfsize do
+				for z=-halfsize,halfsize do
+					if (math.random(1,100)<fire_rnd) then
+						minetest.env:add_entity({x=pos.x+x,y=pos.y+y,z=pos.z+z},'nparticle:smoke_cloud'.. power.. '_entity')
+					end
+				end
+			end
+		end
+	end
+
+	function add_nsmoke_sphere(pos,power,radius,fire_rnd)
+		if radius>5 then radius = 5 end
+		for x=-radius,radius do
+			for y=-radius,radius do
+				for z=-radius,radius do
+					if (math.random(1,100)<fire_rnd) then
+						if (math.sqrt((pos.x-(pos.x+x))^2 + (pos.y-(pos.y+y))^2 + (pos.z-(pos.z+z))^2) <= radius) then
+							add_nsmoke_single({x=pos.x+x,y=pos.y+y,z=pos.z+z},power)
+						end
+					end
+				end
+			end
+		end
+	end
+	
 	
 print("[nParticles " .. version .. "] Loaded!")	

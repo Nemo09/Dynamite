@@ -121,7 +121,7 @@ mod:dynamite v 0.0.5
 					if math.random(1,100) < 35 then 
 						--minetest.env:add_node(dynpos, {name="nparticle:fire_cloud1"})
 						--minetest.env:add_entity(dynpos,"nparticle:fire1_entity")
-						add_fire_single(dynpos,3)
+						add_nfire_single(dynpos,3)
 					end				
 				end
 
