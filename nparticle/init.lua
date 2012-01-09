@@ -83,10 +83,13 @@ end)
 	for i=1,3 do
 
 		fire_ent_table['fire' .. i ..'_entity'] = {
-			physical = false,
-			textures = {"nparticle_fire" .. i .. ".png"},
+			physical = true,
+			--textures = {"nparticle_fire" .. i .. ".png"},
+			textures ={"nparticle_lpoint.png"},
 			lastpos={},
 			visual_size = {x=0.8+0.2*i, y=0.8+0.2*i},
+			initial_sprite_basepos = {x=0, y=0},
+			burnstate = 1,
 			timer = 0,										
 			full_timer = 0,									-- counter of full fire life cycle
 			my_num = i,										-- state of fire
@@ -94,6 +97,54 @@ end)
 			node_burn = false,								-- flag, fire on burnable node
 		}
 
+		fire_ent_table['fire' .. i ..'_entity'].on_punch = function(self, hitter)
+			if (self.node_burn == true) then
+				if (hitter:get_wielded_itemstring() ~= nil) then
+					local invlist = hitter:get_inventory()
+					local itemname = string.gsub(string.match(hitter:get_wielded_itemstring(), '".*"'),'"',"")
+					
+					if (minetest.registered_nodes[itemname].furnace_burntime ~= nil)or(minetest.registered_craftitems[itemname].furnace_burntime ~= nil) then
+					print(string.sub(hitter:get_wielded_itemstring(),1,4))
+					if (string.sub(hitter:get_wielded_itemstring(),1,4) == "node") then
+						if (minetest.registered_nodes[itemname].furnace_burntime ~= nil) then
+							print(self.full_timer)
+							self.full_timer = self.full_timer - minetest.registered_nodes[itemname].furnace_burntime * 1.5
+							print(self.full_timer)
+						end
+					end
+					if (string.sub(hitter:get_wielded_itemstring(),1,5) == "craft") then
+						if (minetest.registered_craftitems[itemname].furnace_burntime ~= nil) then
+							print(self.full_timer)
+							self.full_timer = self.full_timer - minetest.registered_nodes[itemname].furnace_burntime * 1.5
+							print(self.full_timer)
+						end
+					end
+					-------------- Thx 2 Jeija!
+					local inventorylist=hitter:inventory_get_list("main")
+					local i=1
+					while inventorylist[i]~=nil do
+						if string.find(inventorylist[i], itemname)~=nil then
+							local bnumbeg, bnumend=string.find(inventorylist[i], '" ')
+							local oldvalue=tonumber(string.sub(inventorylist[i], bnumend))
+							oldvalue=oldvalue-1
+							local newstring=string.sub(inventorylist[i], 1, bnumend)
+							newstring=(newstring..tostring(oldvalue))
+							if oldvalue~= 0 then
+								inventorylist[i]=newstring
+							else
+								inventorylist[i]=""
+							end
+							hitter:inventory_set_list("main", inventorylist)
+							break -- Arrow shot, leave loop that checks for arrows in inventory
+						end
+						i=i+1
+					end	
+					end
+					
+				end
+			end
+		end
+		
 		fire_ent_table['fire' .. i ..'_entity'].on_activate = function(self, data)
 			local pos = self.object:getpos()
 			local target_node = nil
@@ -102,7 +153,10 @@ end)
 			
 			if (minetest.registered_nodes[minetest.env:get_node(pos).name].furnace_burntime ~= nil ) then
 				self.node_burn = true
-				self.burn_time = minetest.registered_nodes[minetest.env:get_node(pos).name].furnace_burntime * 1.2
+				self.burn_time = minetest.registered_nodes[minetest.env:get_node(pos).name].furnace_burntime * 1.5
+				self.object:settexturemod("^nparticle_fire_b" .. self.burnstate.. ".png")
+			else
+				self.object:settexturemod("^nparticle_fire" .. i .. ".png")
 			end
 			
 		-- fire in not burnable node??? noway!!
@@ -143,7 +197,7 @@ end)
 			self.full_timer = self.full_timer + dtime
 			local pos = self.object:getpos()
 			
-			if (self.timer >= 2) then
+			if (self.timer >= math.random(1,3)) then
 				self.timer = 0
 
 				if (self.node_burn == false) then
@@ -153,8 +207,9 @@ end)
 					for z = -FIRE_ENT_MOVE_CUBE, FIRE_ENT_MOVE_CUBE do
 						local dynpos 	= {x = pos.x+x,y = pos.y+y,z = pos.z+z}
 						local targetnode = minetest.env:get_node(dynpos)
-
-						if (target_node.name == "default:water_flowing")or(target_node.name == "default:water_source") then
+						
+						
+						if (targetnode.name == "default:water_flowing")or(targetnode.name == "default:water_source") then
 							minetest.env:remove_node(self.object:getpos())
 							self.object:remove()
 							nodeupdate(self.object:getpos())
@@ -194,7 +249,11 @@ end)
 						add_nsmoke_single(dynpos,2)
 					end
 					
-					
+					self.burnstate = self.burnstate + 1
+					if (self.burnstate == 3) then
+						self.burnstate = 1
+					end
+					self.object:settexturemod("^nparticle_fire_b" .. self.burnstate.. ".png")
 					
 					for x = -1, 1 do
 					for y = -1, 1 do
@@ -491,6 +550,6 @@ end
 			end
 		end
 	end
-	
-	
+
+
 print("[nParticles " .. version .. "] Loaded!")	

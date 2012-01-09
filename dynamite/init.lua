@@ -7,6 +7,33 @@ mod:dynamite v 0.0.5
 
 ]]--
 
+--[ ***********************   огниво / flint  ***************** ]--
+
+	minetest.register_craft({
+		output = 'craft "dynamite:flint" 1',
+		recipe = {
+			{'craft "default:coal_lump"', 'node "default:cobble"'},
+		}
+	})
+	
+	minetest.register_craftitem("dynamite:flint", {
+		image = "dynamite_flint.png",
+		stack_max = 10,
+		dropcount = 1,
+		liquids_pointable = false,
+		on_place_on_ground = minetest.craftitem_place_item,
+		on_use = function(item, player, pointed_thing)
+			if pointed_thing.type == "node" then
+				local pnode  = minetest.env:get_node(pointed_thing.under)
+				print(pnode.name)
+				if (minetest.registered_nodes[pnode.name].furnace_burntime ~= nil) then
+					add_nfire_single(pointed_thing.under,3)
+				end
+			end
+		end,
+	})
+	
+
 --[ ***********************   coal dust  ***************** ]--
 
 	minetest.register_craft({
